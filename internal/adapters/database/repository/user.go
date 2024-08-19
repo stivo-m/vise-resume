@@ -32,9 +32,9 @@ func (repo UserRepository) FindUser(ctx context.Context, payload dto.FindUserDto
 	var result *gorm.DB
 
 	if payload.Email != "" {
-		result = repo.db.Db.Where("email = ?", payload.Email).First(&user)
+		result = repo.db.Db.Where("email = ?", payload.Email).Preload("Password").First(&user)
 	} else if payload.ID != "" {
-		result = repo.db.Db.Where("id = ?", payload.ID).First(&user)
+		result = repo.db.Db.Where("id = ?", payload.ID).Preload("Password").First(&user)
 	}
 
 	if result.Error != nil {

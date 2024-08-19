@@ -38,10 +38,10 @@ type UpdateUserDto struct {
 }
 
 type UserResponseDto struct {
-	ID              string    `json:"id"`
-	FullName        string    `json:"full_name"`
-	Email           string    `json:"email"`
-	EmailVerifiedAt time.Time `json:"email_verified_at,omitempty"`
+	ID              string     `json:"id"`
+	FullName        string     `json:"full_name"`
+	Email           string     `json:"email"`
+	EmailVerifiedAt *time.Time `json:"email_verified_at,omitempty"`
 }
 
 type TokenResponse struct {

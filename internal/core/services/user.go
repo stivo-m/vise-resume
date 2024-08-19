@@ -66,9 +66,10 @@ func (s UserService) RegisterUser(ctx context.Context, payload dto.RegisterDto) 
 
 	response := dto.ProfileResponse{
 		User: dto.UserResponseDto{
-			ID:       user.ID,
-			FullName: user.FullName,
-			Email:    user.Email,
+			ID:              user.ID,
+			FullName:        user.FullName,
+			Email:           user.Email,
+			EmailVerifiedAt: nil,
 		},
 	}
 
@@ -113,9 +114,9 @@ func (s UserService) LoginUser(ctx context.Context, payload dto.LoginDto) (*dto.
 
 	response := dto.LoginResponse{
 		User: dto.UserResponseDto{
-			FullName:        user.FullName,
-			Email:           user.Email,
-			EmailVerifiedAt: *user.EmailVerifiedAt,
+			ID:       user.ID,
+			FullName: user.FullName,
+			Email:    user.Email,
 		},
 		Token: dto.TokenResponse{
 			Type:        "Bearer",
