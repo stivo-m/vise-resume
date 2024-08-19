@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/stivo-m/vise-resume/internal/adapters/database"
 	"github.com/stivo-m/vise-resume/internal/core/domain"
@@ -23,8 +22,6 @@ func (repo UserRepository) CreateUser(ctx context.Context, user domain.User) (*d
 	if result.Error != nil {
 		return nil, result.Error
 	}
-
-	fmt.Printf("user: %v\n", user)
 
 	return &user, nil
 }
@@ -47,19 +44,27 @@ func (repo UserRepository) FindUser(ctx context.Context, payload dto.FindUserDto
 	return &user, nil
 }
 
-func (repo UserRepository) UpdateUser(ctx context.Context, payload domain.User) error {
-	result := repo.db.Db.Model(&payload).Where("id = ?", payload.Base.ID).Updates(payload)
+func (repo UserRepository) UpdateUser(ctx context.Context, id string, updates map[string]interface{}) error {
+	result := repo.db.Db.Model(&domain.User{}).Where("id = ?", id).Updates(updates)
 	if result.Error != nil {
 		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 
 	return nil
 }
 
-func (repo UserRepository) DeleteUser(ctx context.Context, payload dto.FindUserDto) error {
-	result := repo.db.Db.Delete(payload)
+func (repo UserRepository) DeleteUser(ctx context.Context, id string) error {
+	result := repo.db.Db.Delete(&domain.User{Base: domain.Base{ID: id}})
 	if result.Error != nil {
 		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 
 	return nil
@@ -71,7 +76,7 @@ func (repo UserRepository) CreateToken(ctx context.Context, payload dto.ManageTo
 		UserId:      payload.ID,
 		AccessToken: payload.AccessToken,
 	}
-	result := repo.db.Db.Create(tokenData)
+	result := repo.db.Db.Create(&tokenData)
 
 	if result.Error != nil {
 		return result.Error
@@ -85,7 +90,7 @@ func (repo UserRepository) DeleteToken(ctx context.Context, payload dto.ManageTo
 	tokenData := domain.Token{
 		AccessToken: payload.AccessToken,
 	}
-	result := repo.db.Db.Where("access_token = ?", payload.AccessToken).Delete(tokenData)
+	result := repo.db.Db.Where("access_token = ?", payload.AccessToken).Delete(&tokenData)
 
 	if result.Error != nil {
 		return result.Error

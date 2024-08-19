@@ -1,7 +1,11 @@
 {
     "cSpell.words": [
+        "brianvoe",
         "dbname",
+        "gofakeit",
+        "gofiber",
         "gorm",
+        "oneof",
         "sqlmock",
         "sslmode",
         "stivo",

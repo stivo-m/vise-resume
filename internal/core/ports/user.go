@@ -10,8 +10,8 @@ import (
 type UserPort interface {
 	CreateUser(ctx context.Context, user domain.User) (*domain.User, error)
 	FindUser(ctx context.Context, payload dto.FindUserDto) (*domain.User, error)
-	UpdateUser(ctx context.Context, payload domain.User) error
-	DeleteUser(ctx context.Context, payload dto.FindUserDto) error
+	UpdateUser(ctx context.Context, id string, updates map[string]interface{}) error
+	DeleteUser(ctx context.Context, id string) error
 	CreateToken(ctx context.Context, payload dto.ManageTokenDto) error
 	DeleteToken(ctx context.Context, payload dto.ManageTokenDto) error
 }
@@ -19,7 +19,7 @@ type UserPort interface {
 type UserService interface {
 	RegisterUser(ctx context.Context, payload dto.RegisterDto) (*dto.ProfileResponse, error)
 	LoginUser(ctx context.Context, payload dto.LoginDto) (*dto.LoginResponse, error)
-	UpdateUser(ctx context.Context, payload dto.UpdateUserDto) error
+	UpdateUser(ctx context.Context, id string, updates map[string]interface{}) error
 	ForgetPassword(ctx context.Context, payload dto.EmailDto) error
 	ResetPassword(ctx context.Context, payload dto.ResetPasswordDto) error
 	LogoutUser(ctx context.Context, token string) error

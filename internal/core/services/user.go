@@ -66,9 +66,9 @@ func (s UserService) RegisterUser(ctx context.Context, payload dto.RegisterDto) 
 
 	response := dto.ProfileResponse{
 		User: dto.UserResponseDto{
-			FullName:        user.FullName,
-			Email:           user.Email,
-			EmailVerifiedAt: *user.EmailVerifiedAt,
+			ID:       user.ID,
+			FullName: user.FullName,
+			Email:    user.Email,
 		},
 	}
 
@@ -85,6 +85,10 @@ func (s UserService) LoginUser(ctx context.Context, payload dto.LoginDto) (*dto.
 
 	if err != nil {
 		return nil, err
+	}
+
+	if user.ID == "" {
+		return nil, errors.New("either user was not found or password is incorrect")
 	}
 
 	if user.EmailVerifiedAt == nil {
@@ -123,8 +127,8 @@ func (s UserService) LoginUser(ctx context.Context, payload dto.LoginDto) (*dto.
 }
 
 // The [UpdateUser] usecase allows for users to update their bio-data when needed
-func (s UserService) UpdateUser(ctx context.Context, payload dto.UpdateUserDto) error {
-	err := s.userPort.UpdateUser(ctx, domain.User{FullName: payload.FullName})
+func (s UserService) UpdateUser(ctx context.Context, id string, updates map[string]interface{}) error {
+	err := s.userPort.UpdateUser(ctx, id, updates)
 
 	if err != nil {
 		return err
@@ -182,14 +186,11 @@ func (s UserService) ResetPassword(ctx context.Context, payload dto.ResetPasswor
 		return err
 	}
 
-	userData := domain.User{
-		Base: domain.Base{
-			ID: user.Base.ID,
-		},
-		Password: domain.Password{Value: password},
+	updates := map[string]interface{}{
+		"full_name": password,
 	}
 
-	err = s.userPort.UpdateUser(ctx, userData)
+	err = s.userPort.UpdateUser(ctx, user.ID, updates)
 	if err != nil {
 		return err
 	}

@@ -3,9 +3,9 @@ package dto
 import "time"
 
 type RegisterDto struct {
-	FullName string `json:"full_name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	FullName string `json:"full_name" validate:"required,min=3,max=255"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=5,max=100"`
 }
 
 type LoginDto struct {
@@ -38,6 +38,7 @@ type UpdateUserDto struct {
 }
 
 type UserResponseDto struct {
+	ID              string    `json:"id"`
 	FullName        string    `json:"full_name"`
 	Email           string    `json:"email"`
 	EmailVerifiedAt time.Time `json:"email_verified_at,omitempty"`

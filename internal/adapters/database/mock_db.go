@@ -1,23 +1,18 @@
 package database
 
 import (
-	"github.com/DATA-DOG/go-sqlmock"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-func SetupMockDB() (*DB, sqlmock.Sqlmock, error) {
-	db, mock, err := sqlmock.New()
+func SetupMockDB() (*DB, error) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	gormDB, err := gorm.Open(postgres.New(postgres.Config{
-		Conn: db,
-	}), &gorm.Config{})
-	if err != nil {
-		return nil, nil, err
-	}
+	mockedDb := DB{Db: db}
+	mockedDb.AutoMigrate()
 
-	return &DB{Db: gormDB}, mock, nil
+	return &mockedDb, nil
 }
