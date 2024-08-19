@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/stivo-m/vise-resume/internal/core/domain"
@@ -165,24 +166,31 @@ func (s UserService) ResetPassword(ctx context.Context, payload dto.ResetPasswor
 
 	verificationCode, err := s.verificationPort.FindCode(ctx, dto.VerificationDto{Code: payload.Code})
 	if err != nil {
+		utils.TextLogger.Error("verification code not found", err)
 		return err
 	}
 
 	user, err := s.userPort.FindUser(ctx, dto.FindUserDto{ID: verificationCode.UserId})
 	if err != nil {
+		utils.TextLogger.Error("user not found", err)
 		return err
 	}
 
 	if user == nil {
+		utils.TextLogger.Error("user not found, i.e returning nil with no error")
 		return errors.New("either code is invalid or user does not exist")
 	}
 
 	if payload.Code != verificationCode.Code {
+		utils.TextLogger.Error(fmt.Sprintf(
+			"verification code mismatch. Given %v, expecting %v", payload.Code, verificationCode.Code,
+		))
 		return errors.New("either code is invalid or user does not exist")
 	}
 
 	password, err := s.passwordService.HashPassword(payload.Password)
 	if err != nil {
+		utils.TextLogger.Error("password mismatch", err)
 		return err
 	}
 
@@ -192,8 +200,11 @@ func (s UserService) ResetPassword(ctx context.Context, payload dto.ResetPasswor
 
 	err = s.userPort.UpdateUser(ctx, user.ID, updates)
 	if err != nil {
+		utils.TextLogger.Error("update user failed", err)
 		return err
 	}
+
+	_ = s.verificationPort.DeleteCode(ctx, verificationCode.ID)
 
 	return nil
 }
@@ -202,8 +213,48 @@ func (s UserService) ResetPassword(ctx context.Context, payload dto.ResetPasswor
 func (s UserService) LogoutUser(ctx context.Context, token string) error {
 	err := s.userPort.DeleteToken(ctx, dto.ManageTokenDto{AccessToken: token})
 	if err != nil {
+		utils.TextLogger.Error("unable to delete user token", err)
 		return err
 	}
+
+	return nil
+}
+
+func (s UserService) VerifyEmailAddress(ctx context.Context, payload dto.VerificationDto) error {
+	verificationCode, err := s.verificationPort.FindCode(ctx, dto.VerificationDto{Code: payload.Code})
+	if err != nil {
+		utils.TextLogger.Error("verification code not found", err)
+		return err
+	}
+
+	user, err := s.userPort.FindUser(ctx, dto.FindUserDto{ID: verificationCode.UserId})
+	if err != nil {
+		utils.TextLogger.Error("unable to find the user", err)
+		return err
+	}
+
+	if user == nil {
+		utils.TextLogger.Error("user not found, i.e returning nil with no error")
+		return errors.New("either code is invalid or user does not exist")
+	}
+
+	if payload.Code != verificationCode.Code {
+		utils.TextLogger.Error(fmt.Sprintf(
+			"verification code mismatch. Given %v, expecting %v", payload.Code, verificationCode.Code,
+		))
+		return errors.New("either code is invalid or user does not exist")
+	}
+
+	updates := map[string]interface{}{
+		"email_verified_at": time.Now(),
+	}
+
+	err = s.userPort.UpdateUser(ctx, user.ID, updates)
+	if err != nil {
+		utils.TextLogger.Error("update user failed", err)
+		return err
+	}
+	_ = s.verificationPort.DeleteCode(ctx, verificationCode.ID)
 
 	return nil
 }

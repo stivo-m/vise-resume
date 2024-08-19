@@ -6,8 +6,11 @@
         "gofiber",
         "gorm",
         "oneof",
+        "samber",
+        "slogfiber",
         "sqlmock",
         "sslmode",
+        "stdlog",
         "stivo",
         "stretchr",
         "varchar"

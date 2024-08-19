@@ -19,6 +19,7 @@ type UserPort interface {
 type UserService interface {
 	RegisterUser(ctx context.Context, payload dto.RegisterDto) (*dto.ProfileResponse, error)
 	LoginUser(ctx context.Context, payload dto.LoginDto) (*dto.LoginResponse, error)
+	VerifyEmailAddress(ctx context.Context, payload dto.VerificationDto) error
 	UpdateUser(ctx context.Context, id string, updates map[string]interface{}) error
 	ForgetPassword(ctx context.Context, payload dto.EmailDto) error
 	ResetPassword(ctx context.Context, payload dto.ResetPasswordDto) error

@@ -14,12 +14,12 @@ type LoginDto struct {
 }
 
 type EmailDto struct {
-	Email string `json:"email"`
+	Email string `json:"email" validate:"required,email"`
 }
 
 type ResetPasswordDto struct {
-	Code     string `json:"code"`
-	Password string `json:"password"`
+	Code     string `json:"code"  validate:"required,min=6,max=6"`
+	Password string `json:"password"  validate:"required,min=5,max=255"`
 }
 
 type FindUserDto struct {
@@ -64,7 +64,34 @@ type ApiResponse[T any] struct {
 }
 
 type VerificationDto struct {
-	UserID string `json:"user_id"`
-	Code   string `json:"code"`
-	Type   string `json:"type"`
+	UserID string `json:"user_id" validate:"uuid"`
+	Email  string `json:"email" validate:"email,uuid"`
+	Code   string `json:"code" validate:"required,min=6,max=6"`
+	Type   string `json:"type" validate:"required,oneof=email-verification,password-reset"`
+}
+
+// PostmanCollection represents the structure of a Postman collection.
+type PostmanCollection struct {
+	Info PostmanInfo   `json:"info"`
+	Item []PostmanItem `json:"item"`
+}
+
+type PostmanInfo struct {
+	Name   string `json:"name"`
+	Schema string `json:"schema"`
+}
+
+type PostmanItem struct {
+	Name    string         `json:"name"`
+	Request PostmanRequest `json:"request"`
+}
+
+type PostmanRequest struct {
+	Method string     `json:"method"`
+	Url    PostmanUrl `json:"url"`
+}
+
+type PostmanUrl struct {
+	Raw  string   `json:"raw"`
+	Path []string `json:"path"`
 }
