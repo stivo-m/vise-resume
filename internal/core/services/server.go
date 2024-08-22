@@ -12,9 +12,6 @@ import (
 	"github.com/stivo-m/vise-resume/internal/adapters/http/handlers"
 )
 
-// Create a slog logger, which:
-//   - Logs to stdout.
-
 type Server struct {
 	db *database.DB
 }
@@ -25,11 +22,10 @@ func NewServer(db *database.DB) *Server {
 
 func (s *Server) PrepareServer() (*fiber.App, error) {
 	app := fiber.New()
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	app.Use(slogfiber.New(logger))
 	app.Use(recover.New())
-
-	s.db.AutoMigrate()
 
 	// Repository
 	userRepo := repository.NewUserRepository(s.db)
@@ -47,7 +43,7 @@ func (s *Server) PrepareServer() (*fiber.App, error) {
 
 	// handlers
 	api := app.Group("/api/v1")
-	authHandlers := handlers.NewAuthHandler(userService, tokenService)
+	authHandlers := handlers.NewAuthHandler(userService, userRepo, tokenService)
 	authHandlers.RegisterRoutes(api)
 
 	return app, nil

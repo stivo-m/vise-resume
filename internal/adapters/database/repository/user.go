@@ -32,9 +32,9 @@ func (repo UserRepository) FindUser(ctx context.Context, payload dto.FindUserDto
 	var result *gorm.DB
 
 	if payload.Email != "" {
-		result = repo.db.Db.Where("email = ?", payload.Email).First(&user)
+		result = repo.db.Db.Preload("Password").Where("email = ?", payload.Email).First(&user)
 	} else if payload.ID != "" {
-		result = repo.db.Db.Where("id = ?", payload.ID).First(&user)
+		result = repo.db.Db.Preload("Password").Where("id = ?", payload.ID).First(&user)
 	}
 
 	if result.Error != nil {
@@ -57,6 +57,25 @@ func (repo UserRepository) UpdateUser(ctx context.Context, id string, updates ma
 	return nil
 }
 
+func (repo UserRepository) UpdateUserPassword(ctx context.Context, id string, password domain.Password) error {
+	user, err := repo.FindUser(ctx, dto.FindUserDto{
+		ID: id,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	_ = repo.db.Db.Delete(&domain.Password{Base: domain.Base{ID: user.Password.ID}})
+	user.Password = password
+	if err := repo.db.Db.Save(&user).Error; err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 func (repo UserRepository) DeleteUser(ctx context.Context, id string) error {
 	result := repo.db.Db.Delete(&domain.User{Base: domain.Base{ID: id}})
 	if result.Error != nil {
@@ -68,6 +87,17 @@ func (repo UserRepository) DeleteUser(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (repo UserRepository) FindToken(ctx context.Context, payload dto.ManageTokenDto) (*domain.Token, error) {
+	var token *domain.Token
+	result := repo.db.Db.Where("user_id = ?", payload.ID).Where("access_token = ?", payload.AccessToken).First(&token)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return token, nil
 }
 
 func (repo UserRepository) CreateToken(ctx context.Context, payload dto.ManageTokenDto) error {

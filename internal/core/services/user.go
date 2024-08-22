@@ -89,6 +89,7 @@ func (s UserService) LoginUser(ctx context.Context, payload dto.LoginDto) (*dto.
 	}
 
 	if user.ID == "" {
+		utils.TextLogger.Error("User not found", fmt.Errorf("user: %v", user))
 		return nil, errors.New("either user was not found or password is incorrect")
 	}
 
@@ -98,6 +99,7 @@ func (s UserService) LoginUser(ctx context.Context, payload dto.LoginDto) (*dto.
 
 	match := s.passwordService.VerifyPassword(payload.Password, user.Password.Value)
 	if !match {
+		utils.TextLogger.Error("password mismatch", fmt.Errorf("user: %v", user))
 		return nil, errors.New("either user was not found or password is incorrect")
 	}
 
@@ -114,6 +116,7 @@ func (s UserService) LoginUser(ctx context.Context, payload dto.LoginDto) (*dto.
 
 	response := dto.LoginResponse{
 		User: dto.UserResponseDto{
+			ID:              user.ID,
 			FullName:        user.FullName,
 			Email:           user.Email,
 			EmailVerifiedAt: *user.EmailVerifiedAt,
@@ -164,7 +167,7 @@ func (s UserService) ForgetPassword(ctx context.Context, payload dto.EmailDto) e
 // The [ResetPassword] usecase allows for a user to reset their password
 func (s UserService) ResetPassword(ctx context.Context, payload dto.ResetPasswordDto) error {
 
-	verificationCode, err := s.verificationPort.FindCode(ctx, dto.VerificationDto{Code: payload.Code})
+	verificationCode, err := s.verificationPort.FindCode(ctx, dto.VerificationDto{Code: payload.Code, Type: "password-reset"})
 	if err != nil {
 		utils.TextLogger.Error("verification code not found", err)
 		return err
@@ -194,13 +197,10 @@ func (s UserService) ResetPassword(ctx context.Context, payload dto.ResetPasswor
 		return err
 	}
 
-	updates := map[string]interface{}{
-		"full_name": password,
-	}
-
-	err = s.userPort.UpdateUser(ctx, user.ID, updates)
+	updates := domain.Password{Value: password}
+	err = s.userPort.UpdateUserPassword(ctx, user.ID, updates)
 	if err != nil {
-		utils.TextLogger.Error("update user failed", err)
+		utils.TextLogger.Error("update user password failed", err)
 		return err
 	}
 
@@ -220,8 +220,21 @@ func (s UserService) LogoutUser(ctx context.Context, token string) error {
 	return nil
 }
 
+func (s UserService) ShowProfile(ctx context.Context, id string) (*dto.UserResponseDto, error) {
+	user, err := s.userPort.FindUser(ctx, dto.FindUserDto{ID: id})
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.UserResponseDto{
+		ID:       user.ID,
+		FullName: user.FullName,
+		Email:    user.Email,
+	}, nil
+}
+
 func (s UserService) VerifyEmailAddress(ctx context.Context, payload dto.VerificationDto) error {
-	verificationCode, err := s.verificationPort.FindCode(ctx, dto.VerificationDto{Code: payload.Code})
+	verificationCode, err := s.verificationPort.FindCode(ctx, payload)
 	if err != nil {
 		utils.TextLogger.Error("verification code not found", err)
 		return err

@@ -35,7 +35,7 @@ func setupPostmanCollections(app *fiber.App, port int) {
 }
 
 func main() {
-	db, err := database.SetupMockDB()
+	db, err := database.NewDatabase()
 	if err != nil {
 		log.Panicf("unable to connect to the database: %v", err)
 	}
@@ -52,15 +52,21 @@ func main() {
 		log.Panicf("unable to prepare server: %v", err)
 	}
 
-	// Check if the command to list routes is triggered
+	// List available routes
 	if len(os.Args) > 1 && os.Args[1] == "list:routes" {
 		utils.ListRoutes(app)
 		return
 	}
 
-	// Check if the command to list routes is triggered
+	// Generate postman collections
 	if len(os.Args) > 1 && os.Args[1] == "generate:postman" {
 		setupPostmanCollections(app, port)
+		return
+	}
+
+	// Run migrations
+	if len(os.Args) > 1 && os.Args[1] == "generate:postman" {
+		db.AutoMigrate()
 		return
 	}
 

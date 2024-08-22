@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/stivo-m/vise-resume/internal/adapters/database"
 	"github.com/stivo-m/vise-resume/internal/core/domain"
 	"github.com/stivo-m/vise-resume/internal/core/dto"
+	"github.com/stivo-m/vise-resume/internal/core/utils"
 	"gorm.io/gorm"
 )
 
@@ -29,6 +31,8 @@ func (r VerificationRepository) CreateCode(ctx context.Context, payload dto.Veri
 		Code:   payload.Code,
 		Type:   payload.Type,
 	}
+
+	utils.JsonLogger.Debug(fmt.Sprintf("verification code for user id %s is %s for type %s", data.UserId, data.Code, data.Type))
 
 	result := r.db.Db.Create(&data)
 	if result.Error != nil {

@@ -64,16 +64,17 @@ type ApiResponse[T any] struct {
 }
 
 type VerificationDto struct {
-	UserID string `json:"user_id" validate:"uuid"`
-	Email  string `json:"email" validate:"email,uuid"`
+	UserID string `json:"user_id"`
+	Email  string `json:"email" validate:"email,required"`
 	Code   string `json:"code" validate:"required,min=6,max=6"`
-	Type   string `json:"type" validate:"required,oneof=email-verification,password-reset"`
+	Type   string `json:"type" validate:"required,oneof=email-verification password-reset"`
 }
 
 // PostmanCollection represents the structure of a Postman collection.
 type PostmanCollection struct {
-	Info PostmanInfo   `json:"info"`
-	Item []PostmanItem `json:"item"`
+	Info     PostmanInfo       `json:"info"`
+	Item     []PostmanItem     `json:"item"`
+	Variable []PostmanVariable `json:"variable,omitempty"`
 }
 
 type PostmanInfo struct {
@@ -82,16 +83,37 @@ type PostmanInfo struct {
 }
 
 type PostmanItem struct {
-	Name    string         `json:"name"`
-	Request PostmanRequest `json:"request"`
+	Name    string          `json:"name"`
+	Item    []PostmanItem   `json:"item,omitempty"`    // For grouping (folders)
+	Request *PostmanRequest `json:"request,omitempty"` // Set as a pointer to omit if nil
 }
 
 type PostmanRequest struct {
-	Method string     `json:"method"`
-	Url    PostmanUrl `json:"url"`
+	Method string          `json:"method"`
+	Header []PostmanHeader `json:"header,omitempty"`
+	Url    PostmanUrl      `json:"url"`
+	Body   *PostmanBody    `json:"body,omitempty"`
 }
 
 type PostmanUrl struct {
 	Raw  string   `json:"raw"`
+	Host []string `json:"host"`
 	Path []string `json:"path"`
+}
+
+type PostmanHeader struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+	Type  string `json:"type,omitempty"`
+}
+
+type PostmanVariable struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+	Type  string `json:"type,omitempty"`
+}
+
+type PostmanBody struct {
+	Mode string `json:"mode"`
+	Raw  string `json:"raw"`
 }
