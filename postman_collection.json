@@ -224,6 +224,83 @@
           }
         }
       ]
+    },
+    {
+      "name": "resume",
+      "item": [
+        {
+          "name": " - Resume - List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/resume/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "",
+                "resume",
+                "list"
+              ]
+            }
+          }
+        },
+        {
+          "name": " - Resume - List",
+          "request": {
+            "method": "HEAD",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/resume/list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "",
+                "resume",
+                "list"
+              ]
+            }
+          }
+        },
+        {
+          "name": " - Resume - Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/resume/create",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "",
+                "resume",
+                "create"
+              ]
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [

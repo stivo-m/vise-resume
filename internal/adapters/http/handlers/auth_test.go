@@ -8,25 +8,13 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v6"
-	"github.com/stivo-m/vise-resume/internal/core/domain"
 	"github.com/stivo-m/vise-resume/internal/core/mocks"
+	"github.com/stivo-m/vise-resume/internal/core/test"
 	"github.com/stretchr/testify/assert"
 )
 
-func GenerateFakeUser() domain.User {
-	return domain.User{
-		Base: domain.Base{
-			ID:        gofakeit.UUID(),
-			CreatedAt: gofakeit.Date(),
-			UpdatedAt: gofakeit.Date(),
-		},
-		FullName: gofakeit.Name(),
-		Email:    gofakeit.Email(),
-	}
-}
-
 func TestUserRegistrationWithoutBody(t *testing.T) {
-	app, err := mocks.SetupTestServer()
+	app, _, err := mocks.SetupTestServer()
 	assert.Nil(t, err)
 
 	req := httptest.NewRequest("POST", "/api/v1/auth/register", nil)
@@ -42,7 +30,7 @@ func TestUserRegistrationWithoutBody(t *testing.T) {
 }
 
 func TestUserRegistrationInvalidBody(t *testing.T) {
-	app, err := mocks.SetupTestServer()
+	app, _, err := mocks.SetupTestServer()
 	assert.Nil(t, err)
 
 	payload := `{?}`
@@ -60,7 +48,7 @@ func TestUserRegistrationInvalidBody(t *testing.T) {
 }
 
 func TestUserRegistrationWithValidationErrors(t *testing.T) {
-	app, err := mocks.SetupTestServer()
+	app, _, err := mocks.SetupTestServer()
 	assert.Nil(t, err)
 
 	payload := `{}`
@@ -79,7 +67,7 @@ func TestUserRegistrationWithValidationErrors(t *testing.T) {
 }
 
 func TestUserRegistrationSuccessful(t *testing.T) {
-	app, err := mocks.SetupTestServer()
+	app, _, err := mocks.SetupTestServer()
 	assert.Nil(t, err)
 
 	email := gofakeit.Email()
@@ -100,7 +88,7 @@ func TestUserRegistrationSuccessful(t *testing.T) {
 }
 
 func TestUserRegistrationFailsForSameEmail(t *testing.T) {
-	app, err := mocks.SetupTestServer()
+	app, _, err := mocks.SetupTestServer()
 	assert.Nil(t, err)
 
 	email := gofakeit.Email()
@@ -131,7 +119,7 @@ func TestUserRegistrationFailsForSameEmail(t *testing.T) {
 // Login Tests
 
 func TestLoginWithNonExistingUser(t *testing.T) {
-	app, err := mocks.SetupTestServer()
+	app, _, err := mocks.SetupTestServer()
 	assert.Nil(t, err)
 
 	email := gofakeit.Email()
@@ -150,7 +138,7 @@ func TestLoginWithNonExistingUser(t *testing.T) {
 }
 
 func TestLoginWithUnverifiedEmail(t *testing.T) {
-	app, err := mocks.SetupTestServer()
+	app, _, err := mocks.SetupTestServer()
 	assert.Nil(t, err)
 
 	email := gofakeit.Email()
@@ -176,4 +164,68 @@ func TestLoginWithUnverifiedEmail(t *testing.T) {
 	body := make([]byte, resp.ContentLength)
 	resp.Body.Read(body)
 	assert.Contains(t, string(body), `"email address is not verified"`)
+}
+
+func TestLoginWithVerifiedEmail(t *testing.T) {
+	app, db, err := mocks.SetupTestServer()
+	assert.Nil(t, err)
+
+	user, _, _ := test.GetAuthenticatedTestUser(db)
+
+	requestBody := fmt.Sprintf(`{"email":"%v", "password": "password"}`, user.Email)
+	req := httptest.NewRequest("POST", "/api/v1/auth/login", strings.NewReader(requestBody))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+
+	body := make([]byte, resp.ContentLength)
+	resp.Body.Read(body)
+	assert.Contains(t, string(body), `"User was logged in successfully"`)
+	assert.NotContains(t, string(body), `"email address is not verified"`)
+}
+
+func TestShowProfile(t *testing.T) {
+	app, db, err := mocks.SetupTestServer()
+	assert.Nil(t, err)
+
+	_, token, _ := test.GetAuthenticatedTestUser(db)
+
+	req := httptest.NewRequest("GET", "/api/v1/auth/profile", nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
+	resp, err := app.Test(req)
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+
+	body := make([]byte, resp.ContentLength)
+	resp.Body.Read(body)
+	assert.Contains(t, string(body), `"User profile"`)
+	assert.NotContains(t, string(body), `"Unable to show profile"`)
+}
+
+func TestUpdateUserName(t *testing.T) {
+	app, db, err := mocks.SetupTestServer()
+	assert.Nil(t, err)
+
+	_, token, _ := test.GetAuthenticatedTestUser(db)
+
+	requestBody := fmt.Sprintf(`{"full_name":"%v"}`, "Random name")
+	req := httptest.NewRequest("PATCH", "/api/v1/auth/profile", strings.NewReader(requestBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
+	resp, err := app.Test(req)
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+
+	body := make([]byte, resp.ContentLength)
+	resp.Body.Read(body)
+	assert.Contains(t, string(body), `"User updated successfully"`)
+	assert.NotContains(t, string(body), `"User update failed"`)
 }

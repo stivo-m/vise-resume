@@ -28,7 +28,7 @@ func NewAuthHandler(
 	}
 }
 
-func (h AuthHandler) RegisterRoutes(router fiber.Router) {
+func (h AuthHandler) RegisterAuthRoutes(router fiber.Router) {
 	authRouter := router.Group("/auth")
 	authRouter.Post(
 		"/register",

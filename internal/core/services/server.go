@@ -30,6 +30,7 @@ func (s *Server) PrepareServer() (*fiber.App, error) {
 	// Repository
 	userRepo := repository.NewUserRepository(s.db)
 	verificationRepo := repository.NewVerificationRepository(s.db)
+	resumeRepo := repository.NewResumeRepository(s.db)
 
 	// Services
 	tokenService := NewTokenService()
@@ -40,11 +41,15 @@ func (s *Server) PrepareServer() (*fiber.App, error) {
 		passwordService,
 		verificationRepo,
 	)
+	resumeService := NewResumeService(resumeRepo)
 
 	// handlers
 	api := app.Group("/api/v1")
 	authHandlers := handlers.NewAuthHandler(userService, userRepo, tokenService)
-	authHandlers.RegisterRoutes(api)
+	authHandlers.RegisterAuthRoutes(api)
+
+	resumeHandler := handlers.NewResumeHandler(resumeService, userRepo, tokenService)
+	resumeHandler.RegisterResumeRoutes(api)
 
 	return app, nil
 }

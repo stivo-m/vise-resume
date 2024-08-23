@@ -35,4 +35,7 @@ func (db *DB) AutoMigrate() {
 	db.Db.AutoMigrate(&domain.Password{})
 	db.Db.AutoMigrate(&domain.Verifications{})
 	db.Db.AutoMigrate(&domain.Token{})
+	db.Db.AutoMigrate(&domain.Resume{})
+	db.Db.AutoMigrate(&domain.Education{})
+	db.Db.AutoMigrate(&domain.WorkExperience{})
 }

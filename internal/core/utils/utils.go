@@ -65,6 +65,7 @@ func ExtractUuidFromContext(ctx context.Context, key string) (*uuid.UUID, error)
 	id, ok := ctx.Value(key).(string)
 
 	if !ok {
+		TextLogger.Error(fmt.Sprintf("unable to extract userID from context: %v", ctx))
 		return nil, errors.New("given key is not set")
 	}
 
