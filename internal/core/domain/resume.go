@@ -10,7 +10,7 @@ type Resume struct {
 	Base
 	UserId      string         `gorm:"type:uuid;not null;index;"`
 	Score       int            `gorm:"default:0"`
-	DocumentUrl string         `gorm:"type:text"`
+	Summary     string         `gorm:"size:200;default:null;"`
 	Skills      pq.StringArray `gorm:"type:text[]"`
 	Experiences []WorkExperience
 	Education   []WorkExperience
@@ -22,7 +22,7 @@ type WorkExperience struct {
 	CompanyName string `gorm:"size:255; not null"`
 	Role        string `gorm:"size:255; not null"`
 	StartDate   time.Time
-	EndDate     time.Time
+	EndDate     *time.Time
 }
 
 type Education struct {
@@ -31,5 +31,5 @@ type Education struct {
 	SchoolName string `gorm:"size:255; not null"`
 	Course     string `gorm:"size:255; not null"`
 	StartDate  time.Time
-	EndDate    time.Time
+	EndDate    *time.Time
 }

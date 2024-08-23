@@ -117,3 +117,36 @@ type PostmanBody struct {
 	Mode string `json:"mode"`
 	Raw  string `json:"raw"`
 }
+
+type WorkExperienceDto struct {
+	CompanyName string     `json:"company_name" validate:"required,max=255"`
+	Role        string     `json:"role" validate:"required,max=255"`
+	StartDate   time.Time  `json:"start_date" validate:"required"`
+	EndDate     *time.Time `json:"end_date" `
+}
+
+type EducationDto struct {
+	SchoolName string     `json:"school_name" validate:"required,max=255"`
+	Course     string     `json:"course" validate:"required,max=255"`
+	StartDate  time.Time  `json:"start_date" validate:"required"`
+	EndDate    *time.Time `json:"end_date" `
+}
+
+type ResumeDto struct {
+	ID      string   `json:"id"`
+	UserId  string   `json:"user_id"`
+	Summary string   `json:"summary"`
+	Skills  []string `json:"skills"`
+}
+
+type ResumeFilterDto struct {
+	ID     string
+	UserId string `json:"user_id" validate:"required"`
+}
+
+type CreateResumeDto struct {
+	Summary     string              `json:"summary" validate:"required,max=255"`
+	Skills      []string            `json:"skills" validate:"required,min=1"`
+	Experiences []WorkExperienceDto `json:"experience" validate:"required,dive"`
+	Education   []EducationDto      `json:"education" validate:"required,dive"`
+}

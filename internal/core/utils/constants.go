@@ -5,8 +5,10 @@ import (
 	"os"
 )
 
-var USER_ID_KEY = "user_id"
-var ACCESS_TOKEN_KEY = "access_token"
+type ContextKey string
+
+var USER_ID_KEY string = "user_id"
+var ACCESS_TOKEN_KEY string = "access_token"
 
 var TextLogger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 

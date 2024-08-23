@@ -65,7 +65,7 @@ func main() {
 	}
 
 	// Run migrations
-	if len(os.Args) > 1 && os.Args[1] == "generate:postman" {
+	if len(os.Args) > 1 && os.Args[1] == "migrations:run" {
 		db.AutoMigrate()
 		return
 	}
